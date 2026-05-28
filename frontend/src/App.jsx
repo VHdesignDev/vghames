@@ -5,12 +5,12 @@ import Login from './components/Login';
 import Profile from './components/Profile';
 import Lobby from './components/Lobby';
 import Game from './components/Game';
-import './App.css';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [currentPage, setCurrentPage] = useState('login');
   const [gameType, setGameType] = useState(null);
+  const [lobbyId, setLobbyId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,8 +43,14 @@ export default function App() {
   const handleNavigate = (page, data = {}) => {
     if (page === 'game') {
       setGameType(data.game);
+      setLobbyId(data.lobbyId);
     }
     setCurrentPage(page);
+  };
+
+  const handleExitGame = () => {
+    setGameType(null);
+    setCurrentPage('lobby');
   };
 
   if (loading) {
@@ -65,7 +71,7 @@ export default function App() {
         <Lobby user={user} onNavigate={handleNavigate} />
       )}
       {currentPage === 'game' && user && (
-        <Game gameType={gameType} onExit={() => handleNavigate('lobby')} />
+        <Game gameType={gameType} onExit={handleExitGame} lobbyId={lobbyId} user={user} />
       )}
     </div>
   );

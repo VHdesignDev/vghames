@@ -38,7 +38,7 @@ export default function Lobby({ user, onNavigate }) {
 
     newSocket.on('game-started', (data) => {
       console.log('🎮 Jogo iniciado:', data.game);
-      onNavigate('game', { game: data.game });
+      onNavigate('game', { game: data.game, lobbyId: currentLobby?.id });
     });
 
     return () => newSocket.disconnect();

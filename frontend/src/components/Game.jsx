@@ -1,6 +1,12 @@
 import React from 'react';
+import AdivinhaNotaGame from './AdivinhaNotaGame';
 
-export default function Game({ gameType, onExit }) {
+export default function Game({ gameType, onExit, lobbyId, user }) {
+  if (gameType === 'Adivinha Nota' || gameType === 'adivinha-nota') {
+    return <AdivinhaNotaGame gameType={gameType} onExit={onExit} lobbyId={lobbyId} user={user} />;
+  }
+
+  // Fallback para outros jogos
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-2xl p-8 text-center max-w-md">
