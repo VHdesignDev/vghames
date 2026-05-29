@@ -1,5 +1,5 @@
 # 🎮 VGames - Jogos com Amigos
-
+    
 Plataforma para jogar jogos em tempo real com amigos online.
 
 ## 🚀 Quick Start
