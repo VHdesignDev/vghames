@@ -4,11 +4,10 @@
   "env": {
     "VITE_BACKEND_URL": "https://vghames.onrender.com"
   },
-  "redirects": [
+  "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/",
-      "permanent": false
+      "destination": "/index.html"
     }
   ]
 }
