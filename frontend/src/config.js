@@ -17,5 +17,5 @@ export const firebaseConfig = {
 export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (
   import.meta.env.DEV 
     ? 'http://localhost:3001'
-    : 'https://vghames-backend.onrender.com'
+    : 'https://vghames.onrender.com'
 );
