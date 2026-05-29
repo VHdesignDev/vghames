@@ -171,49 +171,72 @@ io.on('connection', (socket) => {
     const { lobbyId, userId } = data;
     const lobby = lobbys.get(lobbyId);
 
-    if (lobby && lobby.host === userId) {
-      lobby.status = 'playing';
+    console.log(`🎮 Tentativa de iniciar jogo: lobbyId=${lobbyId}, userId=${userId}, isHost=${lobby?.host === userId}, gameName=${lobby?.game}`);
+
+    if (!lobby) {
+      console.error(`❌ Lobby não encontrado: ${lobbyId}`);
+      socket.emit('error', { message: 'Lobby não encontrado' });
+      return;
+    }
+
+    if (lobby.host !== userId) {
+      console.error(`❌ Usuário não é o host: ${userId} vs ${lobby.host}`);
+      socket.emit('error', { message: 'Apenas o host pode iniciar o jogo' });
+      return;
+    }
+
+    if (lobby.players.length < 2) {
+      console.error(`❌ Poucos jogadores: ${lobby.players.length}`);
+      socket.emit('error', { message: 'Precisa de pelo menos 2 jogadores' });
+      return;
+    }
+
+    lobby.status = 'playing';
+    
+    // Inicializar estado do jogo - aceita variações do nome
+    const gameName = lobby.game?.toLowerCase() || '';
+    if (gameName.includes('adivinha')) {
+      const team1 = lobby.players.slice(0, Math.ceil(lobby.players.length / 2));
+      const team2 = lobby.players.slice(Math.ceil(lobby.players.length / 2));
       
-      // Inicializar estado do jogo
-      if (lobby.game === 'Adivinha Nota') {
-        const team1 = lobby.players.slice(0, Math.ceil(lobby.players.length / 2));
-        const team2 = lobby.players.slice(Math.ceil(lobby.players.length / 2));
-        
-        const gameState = {
-          round: 1,
-          maxRounds: 3,
-          teams: { team1, team2 },
-          scores: { team1: 0, team2: 0 },
-          currentTeam: 'team1',
-          targetNote: getRandomNote(),
-          category: getRandomCategory(),
-          tips: [],
-          guesses: [],
-          hintGiver: team1[0],
-          guesser: team1[1] || team1[0],
-          phase: 'hints', // hints | guessing | finished
-          startTime: new Date(),
-        };
-        
-        gameStates.set(lobbyId, gameState);
-        
-        io.to(lobbyId).emit('game-started', {
-          game: lobby.game,
-          gameState: {
-            ...gameState,
-            targetNote: undefined, // Não enviar a nota para ninguém ainda
-          }
-        });
-        
-        // Enviar nota apenas para o jogador que vai dar dicas
-        socket.to(team1[0] || team1[1]).emit('you-are-hint-giver', {
-          targetNote: gameState.targetNote,
-          category: gameState.category,
-          guesser: gameState.guesser,
-        });
-        
-        console.log(`🎮 Jogo 'Adivinha Nota' iniciado: ${lobbyId} | Nota: ${gameState.targetNote}, Categoria: ${gameState.category}`);
-      }
+      const gameState = {
+        round: 1,
+        maxRounds: 3,
+        teams: { team1, team2 },
+        scores: { team1: 0, team2: 0 },
+        currentTeam: 'team1',
+        targetNote: getRandomNote(),
+        category: getRandomCategory(),
+        tips: [],
+        guesses: [],
+        hintGiver: team1[0],
+        guesser: team1[1] || team1[0],
+        phase: 'hints', // hints | guessing | finished
+        startTime: new Date(),
+      };
+      
+      gameStates.set(lobbyId, gameState);
+      
+      console.log(`✅ Jogo iniciado com sucesso: ${lobbyId}`);
+      
+      io.to(lobbyId).emit('game-started', {
+        game: lobby.game,
+        gameState: {
+          ...gameState,
+          targetNote: undefined, // Não enviar a nota para ninguém ainda
+        }
+      });
+      
+      // Enviar nota apenas para o jogador que vai dar dicas
+      io.to(team1[0]).emit('you-are-hint-giver', {
+        targetNote: gameState.targetNote,
+        category: gameState.category,
+        guesser: gameState.guesser,
+      });
+      
+      console.log(`🎮 Jogo 'Adivinha Nota' iniciado: ${lobbyId} | Nota: ${gameState.targetNote}, Categoria: ${gameState.category}`);
+    } else {
+      console.warn(`⚠️ Tipo de jogo não suportado: ${lobby.game}`);
     }
   });
 

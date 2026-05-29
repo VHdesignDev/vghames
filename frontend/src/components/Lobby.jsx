@@ -22,26 +22,39 @@ export default function Lobby({ user, onNavigate }) {
     const newSocket = io(BACKEND_URL);
     setSocket(newSocket);
 
-    newSocket.on('connect', () => {
+    const handleConnect = () => {
       console.log('✅ Conectado ao backend');
       loadLobbys();
-    });
+    };
 
-    newSocket.on('players-updated', (data) => {
-      if (currentLobby) {
-        setCurrentLobby(prev => ({
-          ...prev,
-          players: data.players
-        }));
-      }
-    });
+    const handlePlayersUpdated = (data) => {
+      console.log('👥 Players atualizados:', data);
+      setCurrentLobby(prev => {
+        if (prev) {
+          return { ...prev, players: data.players };
+        }
+        return prev;
+      });
+    };
 
-    newSocket.on('game-started', (data) => {
+    const handleGameStarted = (data) => {
       console.log('🎮 Jogo iniciado:', data.game);
-      onNavigate('game', { game: data.game, lobbyId: currentLobby?.id });
-    });
+      setCurrentLobby(prev => {
+        onNavigate('game', { game: data.game, lobbyId: prev?.id });
+        return prev;
+      });
+    };
 
-    return () => newSocket.disconnect();
+    newSocket.on('connect', handleConnect);
+    newSocket.on('players-updated', handlePlayersUpdated);
+    newSocket.on('game-started', handleGameStarted);
+
+    return () => {
+      newSocket.off('connect', handleConnect);
+      newSocket.off('players-updated', handlePlayersUpdated);
+      newSocket.off('game-started', handleGameStarted);
+      newSocket.disconnect();
+    };
   }, []);
 
   const loadLobbys = async () => {
@@ -85,6 +98,7 @@ export default function Lobby({ user, onNavigate }) {
   };
 
   const joinLobby = (lobby) => {
+    console.log(`👥 Entrando no lobby ${lobby.id}`);
     setCurrentLobby(lobby);
     socket.emit('join-lobby', {
       lobbyId: lobby.id,
@@ -94,10 +108,13 @@ export default function Lobby({ user, onNavigate }) {
 
   const startGame = () => {
     if (currentLobby) {
+      console.log(`🎮 Iniciando jogo no lobby ${currentLobby.id}...`);
       socket.emit('start-game', {
         lobbyId: currentLobby.id,
         userId: user.uid
       });
+    } else {
+      console.error('❌ Nenhum lobby selecionado');
     }
   };
 
