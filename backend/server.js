@@ -7,13 +7,36 @@ import admin from 'firebase-admin';
 
 dotenv.config();
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+// Função para validar CORS - aceita qualquer origem de desenvolvimento local, Vercel ou domínios autorizados
+const validateOrigin = (origin, callback) => {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    process.env.CORS_ORIGIN || 'https://vghames.vercel.app'
+  ];
+
+  // Aceita qualquer URL do Vercel (preview ou produção)
+  if (origin && (
+    origin.includes('vercel.app') ||
+    origin.includes('localhost') ||
+    allowedOrigins.includes(origin)
+  )) {
+    callback(null, true);
+  } else if (!origin) {
+    // Para requisições sem origin (como tarefas em background)
+    callback(null, true);
+  } else {
+    console.warn(`CORS rejected origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  }
+};
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: CORS_ORIGIN,
+    origin: validateOrigin,
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -21,7 +44,7 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(cors({
-  origin: CORS_ORIGIN,
+  origin: validateOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
