@@ -20,9 +20,12 @@ const io = new Server(httpServer, {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
 app.use(express.json());
-
 // Firebase Admin Setup (Comentado: ativar depois quando Firestore estiver funcionando)
 /*
 try {
