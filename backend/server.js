@@ -7,13 +7,13 @@ import admin from 'firebase-admin';
 
 dotenv.config();
 
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? 'https://vghames.vercel.app' 
-      : 'http://localhost:5173',
+    origin: CORS_ORIGIN,
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -21,7 +21,7 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: CORS_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
