@@ -13,7 +13,9 @@ export const firebaseConfig = {
   appId: "1:656462521354:web:6c383acd6e5868a78eabf3"
 };
 
-// Backend URL
-export const BACKEND_URL = import.meta.env.DEV 
-  ? 'http://localhost:3001'
-  : 'https://seu-backend.onrender.com';
+// Backend URL - usa variável de ambiente ou fallback padrão
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (
+  import.meta.env.DEV 
+    ? 'http://localhost:3001'
+    : 'https://vghames-backend.onrender.com'
+);
