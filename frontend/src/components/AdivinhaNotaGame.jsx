@@ -16,8 +16,19 @@ export default function Game({ gameType, onExit, lobbyId, user }) {
   const [showGuessPhase, setShowGuessPhase] = useState(false);
 
   useEffect(() => {
+    console.log('🎮 Iniciando AdivinhaNotaGame. LobbyId:', lobbyId, 'User:', user?.uid);
+
     if (!socket) {
       socket = io(BACKEND_URL);
+    }
+
+    // Se já temos um lobbyId, fazer join
+    if (lobbyId && user?.uid) {
+      console.log(`👥 Entrando no room do jogo: ${lobbyId}`);
+      socket.emit('join-lobby', {
+        lobbyId: lobbyId,
+        userId: user.uid
+      });
     }
 
     // Evento: Jogo iniciado
@@ -40,26 +51,31 @@ export default function Game({ gameType, onExit, lobbyId, user }) {
 
     // Evento: Dica recebida
     socket.on('hint-received', (data) => {
+      console.log('💡 Dica recebida:', data.hint);
       setHints(prev => [...prev, data]);
     });
 
     // Evento: Fase de adivinhação iniciada
     socket.on('guessing-phase-started', () => {
+      console.log('🔢 Fase de adivinhação iniciada');
       setShowGuessPhase(true);
     });
 
     // Evento: Adivinha correta
     socket.on('guess-correct', (data) => {
+      console.log('✅ Adivinha correta!');
       setGuessResult({ correct: true, note: data.targetNote, scores: data.scores });
     });
 
     // Evento: Adivinha incorreta
     socket.on('guess-incorrect', (data) => {
+      console.log('❌ Adivinha incorreta!');
       setGuessResult({ correct: false, note: data.targetNote, message: data.message });
     });
 
     // Evento: Próxima rodada
     socket.on('next-round', (data) => {
+      console.log('🔄 Próxima rodada');
       setGameState(prev => ({
         ...prev,
         round: data.round,
@@ -76,6 +92,7 @@ export default function Game({ gameType, onExit, lobbyId, user }) {
 
     // Evento: Jogo finalizado
     socket.on('game-finished', (data) => {
+      console.log('🏆 Jogo finalizado');
       setGameState(prev => ({ ...prev, phase: 'finished' }));
     });
 
